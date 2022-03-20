@@ -1,7 +1,14 @@
 require 'yaml'
+require './lib/logger'
 
 module Wordle
-  ALL_WORDS = YAML.load(File.read("./data/words.yml")).shuffle
+  seed = ENV["SEED"]&.to_i || Random.new_seed
+
+  if ENV["DEBUG"]
+    Logger.log_debug("Using seed #{seed}")
+  end
+
+  ALL_WORDS = YAML.load(File.read("./data/words.yml")).shuffle(random: Random.new(seed))
 
   class Dictionary
     class << self

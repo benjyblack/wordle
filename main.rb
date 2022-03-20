@@ -1,6 +1,6 @@
 require './wordle'
 
-game = Wordle::Game.new("watch")
-solver = Wordle::Solver.new(game)
+# game = Wordle::Game.new("watch")
+solver = Wordle::Solver.new
 
 pp solver.solve

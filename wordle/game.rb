@@ -24,23 +24,23 @@ module Wordle
 
       guessed_word.split('').each_with_index do |guessed_word_letter, idx|
         if guessed_word_letter == self.word_tokens[idx]
-          clues << "🟩"
+          clues << "G"
           letters_in_correct_position << guessed_word_letter
         # TODO: Optimize
         elsif self.word_tokens.include?(guessed_word_letter)
-          clues << "🟨"
+          clues << "Y"
         else
-          clues << "🟥"
+          clues << "B"
         end
       end
 
       remaining_letters = self.word_tokens - letters_in_correct_position
 
       clues.each_with_index do |clue, idx|
-        next unless clue == "🟨"
+        next unless clue == "Y"
 
         unless remaining_letters.include?(guessed_word[idx])
-          clues[idx] = "🟥"
+          clues[idx] = "B"
         end
       end
 

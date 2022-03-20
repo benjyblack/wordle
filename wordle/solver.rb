@@ -1,14 +1,8 @@
+require './lib/logger'
+
 module Wordle
   class Solver
-    FIRST_GUESS = 'aisle'.freeze
-
-    attr_reader :game
-    attr_accessor :guessed_words
-
-    def initialize(game)
-      @game = game
-      @guessed_words = []
-    end
+    FIRST_GUESS = 'races'.freeze
 
     def solve
       word_to_guess = FIRST_GUESS
@@ -18,18 +12,20 @@ module Wordle
       included_tokens = []
       excluded_tokens = []
 
-      while(true)
-        clues = game.guess(word_to_guess)
+      Logger.log_info("Let's start")
 
-        pp word_to_guess
-        pp clues
+      while(true)
+        Logger.log_info("Try #{word_to_guess.upcase}")
+        Logger.log_info("What was the response?")
+
+        clues = gets.chomp.split("")
 
         game_won = true
 
         clues.each_with_index do |clue, idx|
-          if clue == "🟩"
+          if clue == "G"
             included_positional_tokens[idx] = word_to_guess[idx]
-          elsif clue == "🟨"
+          elsif clue == "Y"
             game_won = false
             included_tokens << word_to_guess[idx]
 
@@ -38,7 +34,7 @@ module Wordle
             end
 
             excluded_positional_tokens[idx] << word_to_guess[idx]
-          elsif clue == "🟥"
+          elsif clue == "B"
             # will handle in next loop
           else
             raise StandardError, "Something went wrong"
@@ -46,35 +42,53 @@ module Wordle
         end
 
         clues.each_with_index do |clue, idx|
-          next unless clue == "🟥"
+          next unless clue == "B"
 
           if !included_positional_tokens.values.include?(word_to_guess[idx])
             excluded_tokens << word_to_guess[idx]
           end
+
+          if excluded_positional_tokens[idx].nil?
+            excluded_positional_tokens[idx] = []
+          end
+
+          excluded_positional_tokens[idx] << word_to_guess[idx]
 
           game_won = false
         end
 
 
         if game_won
-          puts "🎉🎉🎉🎉🎉🎉🎉🎉"
-          return
+          puts 5.times.map { "🎉🎉🎉🎉🎉🎉🎉🎉\n" }.join("")
+
+          return Logger::log_info("You won!")
         end
 
         word_to_guess = Dictionary.search(
           included_positional_tokens: included_positional_tokens,
+          excluded_positional_tokens: excluded_positional_tokens,
           included_tokens: included_tokens,
           excluded_tokens: excluded_tokens,
         )
 
+        if ENV["DEBUG"]
+          Logger.log_debug({
+            included_positional_tokens: included_positional_tokens,
+            excluded_positional_tokens: excluded_positional_tokens,
+            included_tokens: included_tokens,
+            excluded_tokens: excluded_tokens,
+          })
+        end
+
         if word_to_guess.nil?
-          puts "We couldn't find the word!"
+          Logger.log_error("We couldn't find the word!")
           return
         end
       end
 
     rescue Game::OutOfAttemptsError
-      puts "We ran out of attempts."
+      Logger.log_error("We ran out of attempts")
+      return
     end
   end
 end
